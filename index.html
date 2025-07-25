@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AILeadGen - Automated Lead Generation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot me-2"></i>AILeadGen
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/upload">Upload Leads</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/clients">Clients</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/deliveries">Deliveries</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-4">
+                    <i class="fas fa-tachometer-alt text-primary me-3"></i>
+                    System Dashboard
+                </h1>
+                <p class="lead">Automated lead generation and delivery system with AI personalization</p>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="stats-number">{{ stats.total_clients or 0 }}</h3>
+                        <p class="stats-label">Total Clients</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="stats-number">{{ stats.active_deliveries or 0 }}</h3>
+                        <p class="stats-label">Active Deliveries</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-warning">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h3 class="stats-number">{{ stats.pending_leads or 0 }}</h3>
+                        <p class="stats-label">Pending Leads</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-info">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <h3 class="stats-number">${{ "%.0f"|format(stats.total_revenue or 0) }}</h3>
+                        <p class="stats-label">Monthly Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-bolt text-warning me-2"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="/upload" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-upload me-2"></i>
+                                    Upload Leads
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-success btn-lg w-100" onclick="runAutomation()">
+                                    <i class="fas fa-play me-2"></i>
+                                    Run Automation
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/clients" class="btn btn-info btn-lg w-100">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Add Client
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-secondary btn-lg w-100" onclick="openScheduleModal()">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Schedule
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Deliveries -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history text-success me-2"></i>
+                            Recent Deliveries
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Leads Count</th>
+                                        <th>Status</th>
+                                        <th>Delivery Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in recent_deliveries %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ delivery.client_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ delivery.leads_count }}</span>
+                                        </td>
+                                        <td>
+                                            {% if delivery.status == 'Delivered' %}
+                                                <span class="badge bg-success">{{ delivery.status }}</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">{{ delivery.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ delivery.delivery_date }}</td>
+                                        <td>
+                                            {% if delivery.google_drive_url %}
+                                            <a href="{{ delivery.google_drive_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recent deliveries found</p>
+                            <a href="/upload" class="btn btn-primary">Upload First Leads</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-heartbeat text-danger me-2"></i>
+                            System Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-circle text-success me-2"></i>
+                                    <span>API Services</span>
+                                    <span class="badge bg-success ms-auto">Online</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-circle text-success me-2"></i>
+                                    <span>Lead Processing</span>
+                                    <span class="badge bg-success ms-auto">Active</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-circle text-warning me-2"></i>
+                                    <span>Automation</span>
+                                    <span class="badge bg-warning ms-auto">Scheduled</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Schedule Automation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleForm">
+                        <div class="mb-3">
+                            <label class="form-label">Daily Processing Time</label>
+                            <input type="time" class="form-control" id="scheduleTime" value="09:00" required>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="enableSchedule" checked>
+                                <label class="form-check-label" for="enableSchedule">
+                                    Enable automated processing
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSchedule()">Save Schedule</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/script.js"></script>
+    <script>
+        // Auto-refresh stats every 30 seconds
+        setInterval(refreshStats, 30000);
+        
+        function refreshStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.error) {
+                        // Update stats on page
+                        updateStatsDisplay(data);
+                    }
+                })
+                .catch(error => console.error('Error refreshing stats:', error));
+        }
+        
+        function updateStatsDisplay(stats) {
+            const statsNumbers = document.querySelectorAll('.stats-number');
+            if (statsNumbers.length >= 4) {
+                statsNumbers[0].textContent = stats.total_clients || 0;
+                statsNumbers[1].textContent = stats.active_clients || 0;
+                statsNumbers[2].textContent = stats.remaining_quota || 0;
+                statsNumbers[3].textContent = '$' + Math.round(stats.monthly_revenue || 0);
+            }
+        }
+        
+        function runAutomation() {
+            if (confirm('Run automated processing for all active clients?')) {
+                showLoading('Running automation...');
+                
+                fetch('/schedule_automation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ manual_run: true })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showAlert('Automation completed successfully!', 'success');
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        showAlert('Error running automation: ' + data.error, 'danger');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showAlert('Error running automation: ' + error.message, 'danger');
+                });
+            }
+        }
+        
+        function openScheduleModal() {
+            new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+        }
+        
+        function saveSchedule() {
+            const scheduleTime = document.getElementById('scheduleTime').value;
+            const enabled = document.getElementById('enableSchedule').checked;
+            
+            showLoading('Saving schedule...');
+            
+            fetch('/schedule_automation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    schedule_time: scheduleTime,
+                    enabled: enabled
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+                } else {
+                    showAlert('Error saving schedule: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showAlert('Error saving schedule: ' + error.message, 'danger');
+            });
+        }
+    </script>
+</body>
+</html>

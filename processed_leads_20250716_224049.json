@@ -1,0 +1,92 @@
+[
+  {
+    "first_name": "John",
+    "last_name": "Smith",
+    "company": "TechCorp Solutions",
+    "title": "Marketing Director",
+    "email": "john.smith@techcorp.com",
+    "linkedin": "https://linkedin.com/in/johnsmith",
+    "processed_at": "2025-07-16T22:40:49.939027"
+  },
+  {
+    "first_name": "Sarah",
+    "last_name": "Johnson",
+    "company": "InnovateTech",
+    "title": "VP of Sales",
+    "email": "sarah.johnson@innovatetech.com",
+    "linkedin": "https://linkedin.com/in/sarahjohnson",
+    "processed_at": "2025-07-16T22:40:49.939120"
+  },
+  {
+    "first_name": "Mike",
+    "last_name": "Davis",
+    "company": "StartupVenture",
+    "title": "CEO",
+    "email": "mike.davis@startupventure.com",
+    "linkedin": "https://linkedin.com/in/mikedavis",
+    "processed_at": "2025-07-16T22:40:49.939210"
+  },
+  {
+    "first_name": "Lisa",
+    "last_name": "Brown",
+    "company": "ScaleUp Inc",
+    "title": "Head of Growth",
+    "email": "lisa.brown@scaleup.com",
+    "linkedin": "https://linkedin.com/in/lisabrown",
+    "processed_at": "2025-07-16T22:40:49.939279"
+  },
+  {
+    "first_name": "David",
+    "last_name": "Wilson",
+    "company": "DevSoft",
+    "title": "CTO",
+    "email": "david.wilson@devsoft.com",
+    "linkedin": "https://linkedin.com/in/davidwilson",
+    "processed_at": "2025-07-16T22:40:49.939342"
+  },
+  {
+    "first_name": "Emma",
+    "last_name": "Taylor",
+    "company": "NextGen Apps",
+    "title": "Product Manager",
+    "email": "emma.taylor@nextgen.com",
+    "linkedin": "https://linkedin.com/in/emmataylor",
+    "processed_at": "2025-07-16T22:40:49.939419"
+  },
+  {
+    "first_name": "Alex",
+    "last_name": "Martinez",
+    "company": "CloudTech",
+    "title": "Sales Director",
+    "email": "alex.martinez@cloudtech.com",
+    "linkedin": "https://linkedin.com/in/alexmartinez",
+    "processed_at": "2025-07-16T22:40:49.939485"
+  },
+  {
+    "first_name": "Rachel",
+    "last_name": "Anderson",
+    "company": "DigitalFlow",
+    "title": "Marketing Manager",
+    "email": "rachel.anderson@digitalflow.com",
+    "linkedin": "https://linkedin.com/in/rachelanderson",
+    "processed_at": "2025-07-16T22:40:49.939564"
+  },
+  {
+    "first_name": "Tom",
+    "last_name": "Garcia",
+    "company": "MedTech Innovations",
+    "title": "Founder",
+    "email": "tom.garcia@medtech.com",
+    "linkedin": "https://linkedin.com/in/tomgarcia",
+    "processed_at": "2025-07-16T22:40:49.939638"
+  },
+  {
+    "first_name": "Jennifer",
+    "last_name": "Lee",
+    "company": "FinanceForward",
+    "title": "VP Marketing",
+    "email": "jennifer.lee@financefwd.com",
+    "linkedin": "https://linkedin.com/in/jenniferlee",
+    "processed_at": "2025-07-16T22:40:49.939837"
+  }
+]

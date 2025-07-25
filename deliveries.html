@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Tracking - AILeadGen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot me-2"></i>AILeadGen
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/upload">Upload Leads</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/clients">Clients</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/deliveries">Deliveries</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-4">
+                    <i class="fas fa-truck text-primary me-3"></i>
+                    Delivery Tracking
+                </h1>
+                <p class="lead">Monitor and track all lead deliveries to clients</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-success btn-lg" onclick="refreshDeliveries()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Delivery Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="stats-number">{{ deliveries|selectattr("status", "equalto", "Delivered")|list|length }}</h3>
+                        <p class="stats-label">Completed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="stats-number">{{ deliveries|selectattr("status", "equalto", "Pending")|list|length }}</h3>
+                        <p class="stats-label">Pending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-info">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h3 class="stats-number">{{ deliveries|sum(attribute="leads_count") or 0 }}</h3>
+                        <p class="stats-label">Total Leads</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-primary">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <h3 class="stats-number">{{ deliveries|selectattr("delivery_date", "match", "^" + moment().format('YYYY-MM-DD'))|list|length or 0 }}</h3>
+                        <p class="stats-label">Today</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label">Filter by Status</label>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All Statuses</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Failed">Failed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Filter by Client</label>
+                                <select class="form-select" id="clientFilter">
+                                    <option value="">All Clients</option>
+                                    {% for delivery in deliveries %}
+                                        {% set client_name = delivery.client_name %}
+                                        {% if client_name not in (deliveries|map(attribute='client_name')|list[:loop.index-1]) %}
+                                            <option value="{{ client_name }}">{{ client_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Date Range</label>
+                                <select class="form-select" id="dateFilter">
+                                    <option value="">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                    <i class="fas fa-times me-2"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deliveries Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-shipping-fast text-success me-2"></i>
+                                    Recent Deliveries
+                                </h5>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search deliveries...">
+                                    <button class="btn btn-outline-secondary btn-sm" type="button">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="deliveriesTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Leads Count</th>
+                                        <th>Status</th>
+                                        <th>Delivery Date</th>
+                                        <th>Google Drive</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in deliveries %}
+                                    <tr data-status="{{ delivery.status }}" data-client="{{ delivery.client_name }}" data-date="{{ delivery.delivery_date }}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="client-avatar me-3">
+                                                    {{ delivery.client_name[0].upper() if delivery.client_name else 'N' }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ delivery.client_name or 'Unknown Client' }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">ID: {{ delivery.id[:8] if delivery.id else 'N/A' }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary fs-6">{{ delivery.leads_count or 0 }}</span>
+                                            <br>
+                                            <small class="text-muted">leads delivered</small>
+                                        </td>
+                                        <td>
+                                            {% if delivery.status == 'Delivered' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Delivered
+                                                </span>
+                                            {% elif delivery.status == 'Pending' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Pending
+                                                </span>
+                                            {% elif delivery.status == 'Failed' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>Failed
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ delivery.status or 'Unknown' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>{{ delivery.delivery_date[:10] if delivery.delivery_date else 'N/A' }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ delivery.delivery_date[11:16] if delivery.delivery_date and delivery.delivery_date|length > 16 else 'N/A' }}</small>
+                                        </td>
+                                        <td>
+                                            {% if delivery.google_drive_url %}
+                                                <a href="{{ delivery.google_drive_url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-external-link-alt me-1"></i>View File
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">No link</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                {% if delivery.google_drive_url %}
+                                                <button class="btn btn-outline-primary" onclick="downloadDelivery('{{ delivery.google_drive_url }}')">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                {% endif %}
+                                                <button class="btn btn-outline-info" onclick="viewDeliveryDetails('{{ delivery.id }}')">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                {% if delivery.status == 'Failed' %}
+                                                <button class="btn btn-outline-warning" onclick="retryDelivery('{{ delivery.id }}')">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                            <h5>No Deliveries Found</h5>
+                            <p class="text-muted">No lead deliveries have been processed yet</p>
+                            <a href="/upload" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>Upload Leads to Start
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Statistics Chart -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line text-info me-2"></i>
+                            Delivery Trends
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="deliveryChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Details Modal -->
+    <div class="modal fade" id="deliveryDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>Delivery Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="deliveryDetailsContent">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                            <p class="mt-2">Loading delivery details...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/script.js"></script>
+    <script>
+        // Initialize delivery chart
+        const ctx = document.getElementById('deliveryChart').getContext('2d');
+        const deliveryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Leads Delivered',
+                    data: [12, 19, 8, 15, 25, 22, 18],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Filter functionality
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('clientFilter').addEventListener('change', applyFilters);
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const clientFilter = document.getElementById('clientFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const rows = document.querySelectorAll('#deliveriesTable tbody tr');
+
+            rows.forEach(row => {
+                let show = true;
+
+                // Status filter
+                if (statusFilter && row.dataset.status !== statusFilter) {
+                    show = false;
+                }
+
+                // Client filter
+                if (clientFilter && row.dataset.client !== clientFilter) {
+                    show = false;
+                }
+
+                // Date filter
+                if (dateFilter && !matchesDateFilter(row.dataset.date, dateFilter)) {
+                    show = false;
+                }
+
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        function matchesDateFilter(dateString, filter) {
+            if (!dateString) return false;
+            
+            const date = new Date(dateString);
+            const today = new Date();
+            
+            switch (filter) {
+                case 'today':
+                    return date.toDateString() === today.toDateString();
+                case 'week':
+                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    return date >= weekAgo;
+                case 'month':
+                    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    return date >= monthAgo;
+                default:
+                    return true;
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('clientFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            applyFilters();
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#deliveriesTable tbody tr');
+
+            rows.forEach(row => {
+                const clientName = row.querySelector('strong').textContent.toLowerCase();
+                const status = row.dataset.status.toLowerCase();
+                
+                if (clientName.includes(searchTerm) || status.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        function refreshDeliveries() {
+            showLoading('Refreshing deliveries...');
+            setTimeout(() => {
+                hideLoading();
+                location.reload();
+            }, 1000);
+        }
+
+        function downloadDelivery(url) {
+            window.open(url, '_blank');
+        }
+
+        function viewDeliveryDetails(deliveryId) {
+            // Show modal with loading state
+            const modal = new bootstrap.Modal(document.getElementById('deliveryDetailsModal'));
+            modal.show();
+
+            // Simulate loading delivery details
+            setTimeout(() => {
+                document.getElementById('deliveryDetailsContent').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Delivery Information</h6>
+                            <table class="table table-sm">
+                                <tr><td>Delivery ID:</td><td>${deliveryId}</td></tr>
+                                <tr><td>Status:</td><td><span class="badge bg-success">Delivered</span></td></tr>
+                                <tr><td>Processing Time:</td><td>45 seconds</td></tr>
+                                <tr><td>File Size:</td><td>2.4 MB</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Lead Statistics</h6>
+                            <table class="table table-sm">
+                                <tr><td>Total Leads:</td><td>150</td></tr>
+                                <tr><td>AI Personalized:</td><td>150</td></tr>
+                                <tr><td>Verified Emails:</td><td>147</td></tr>
+                                <tr><td>LinkedIn Profiles:</td><td>145</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Processing Log</h6>
+                        <div class="bg-light p-3 rounded">
+                            <small class="text-muted">
+                                2024-01-15 09:30:15 - Started processing delivery<br>
+                                2024-01-15 09:30:18 - Lead validation completed<br>
+                                2024-01-15 09:30:25 - AI personalization completed<br>
+                                2024-01-15 09:30:45 - CSV file generated<br>
+                                2024-01-15 09:30:52 - Uploaded to Google Drive<br>
+                                2024-01-15 09:30:55 - Email notification sent<br>
+                                2024-01-15 09:31:00 - Delivery completed
+                            </small>
+                        </div>
+                    </div>
+                `;
+            }, 1000);
+        }
+
+        function retryDelivery(deliveryId) {
+            if (confirm('Retry this failed delivery?')) {
+                showAlert('Retrying delivery...', 'info');
+                // Implement retry logic here
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[project]
+name = "repl-nix-workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.1.1",
+    "google-api-python-client>=2.176.0",
+    "google-genai>=1.25.0",
+    "google-oauth2-tool>=0.0.3",
+    "notion-client>=2.4.0",
+    "pandas>=2.3.1",
+    "psycopg2-binary>=2.9.10",
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.4",
+    "schedule>=1.2.2",
+    "werkzeug>=3.1.3",
+]

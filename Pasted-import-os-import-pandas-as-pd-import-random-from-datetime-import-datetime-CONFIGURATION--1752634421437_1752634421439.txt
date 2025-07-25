@@ -1,0 +1,69 @@
+import os
+import pandas as pd
+import random
+from datetime import datetime
+
+# === CONFIGURATION ===
+clients = [
+    {"name": "TechHirePro", "plan": "premium", "exclusive": True, "lead_count": 150},
+    {"name": "GrowthEdge", "plan": "pro", "exclusive": False, "lead_count": 100},
+    {"name": "StartupWave", "plan": "basic", "exclusive": True, "lead_count": 100}
+]
+
+sample_leads = [
+    {"first_name": "Alice", "last_name": "Johnson", "company": "CloudBase Inc", "title": "HR Manager"},
+    {"first_name": "Ben", "last_name": "Williams", "company": "HireTech", "title": "Talent Acquisition Lead"},
+    {"first_name": "Carla", "last_name": "Smith", "company": "StartLoop", "title": "Recruitment Director"},
+    {"first_name": "David", "last_name": "Lee", "company": "JobNexus", "title": "Hiring Specialist"},
+    {"first_name": "Ella", "last_name": "Carter", "company": "TalentBridge", "title": "People Ops Lead"},
+    {"first_name": "Frank", "last_name": "Mills", "company": "TechPlace", "title": "Recruiting Manager"},
+]
+
+today = datetime.today().strftime("%Y-%m-%d")
+base_dir = "LeadDeliveries"
+
+# === MAIN SCRIPT ===
+for client in clients:
+    client_name = client["name"]
+    plan = client["plan"]
+    exclusive = client["exclusive"]
+    lead_count = client["lead_count"]
+    folder_name = f"{client_name}_{plan.capitalize()}_{'Exclusive' if exclusive else 'Shared'}"
+    full_path = os.path.join(base_dir, folder_name, today)
+    os.makedirs(full_path, exist_ok=True)
+
+    # Create lead entries
+    leads = []
+    for i in range(lead_count):
+        lead = random.choice(sample_leads)
+        lead_id = f"{client_name.lower()}-{datetime.today().strftime('%Y%m%d')}-{str(i+1).zfill(4)}"
+        email = f"{lead['first_name'].lower()}.{lead['last_name'].lower()}@{lead['company'].lower().replace(' ', '')}.com"
+        linkedin = f"https://linkedin.com/in/{lead['first_name'].lower()}{lead['last_name'].lower()}"
+        cold_email = (
+            f"Hi {lead['first_name']},\\n\\n"
+            f"I noticed you're the {lead['title']} at {lead['company']}. We help teams like yours get access to top-tier candidates fast using AI-sourced leads. "
+            f"Would you be open to a quick demo or a free list to start?\\n\\nBest,\\nAILeadGen"
+        )
+        icebreaker = f"Saw you're doing great work at {lead['company']} — especially in hiring tech talent. Thought I'd reach out!"
+
+        leads.append({
+            "Lead ID": lead_id,
+            "Client Name": client_name,
+            "First Name": lead["first_name"],
+            "Last Name": lead["last_name"],
+            "Title": lead["title"],
+            "Company": lead["company"],
+            "Email": email,
+            "LinkedIn": linkedin,
+            "Cold Email": cold_email,
+            "Icebreaker": icebreaker,
+            "Verified": random.choice(["✅", "❌"]),
+            "Exclusive": "Yes" if exclusive else "No"
+        })
+
+    # Save to CSV
+    df = pd.DataFrame(leads)
+    file_name = f"leads_{client_name}_{datetime.today().strftime('%Y%m%d')}.csv"
+    df.to_csv(os.path.join(full_path, file_name), index=False)
+
+print("✅ All client lead files generated and saved successfully.")
