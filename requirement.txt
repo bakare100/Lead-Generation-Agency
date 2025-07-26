@@ -1,0 +1,9 @@
+Flask
+python-dotenv
+pandas
+requests
+notion-client
+google-generativeai
+Werkzeug
+openai
+schedule
