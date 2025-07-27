@@ -253,8 +253,9 @@ if __name__ == '__main__':
     
     # Run Flask app
     import os
-    # Use Railway's assigned port or default 10000
-port = int(os.environ.get("PORT", 10000))  
+    import os
+ # fallback to 10000 if PORT is not set
+port = int(os.environ.get("PORT", 10000)) 
 app.run(host="0.0.0.0", port=port)
 
 # Run Flask app on Railway-compatible settings
