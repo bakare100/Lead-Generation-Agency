@@ -252,4 +252,9 @@ if __name__ == '__main__':
     scheduler_service.start()
     
     # Run Flask app
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    import os
+port = int(os.environ.get("PORT", 10000))  # Use Railway's assigned port or default 10000
+app.run(host="0.0.0.0", port=port)
+
+# Run Flask app on Railway-compatible settings
+port = int(os.environ.get("PORT", 10000))
