@@ -258,6 +258,4 @@ app.run(host="0.0.0.0", port=port)
 
 # Run Flask app on Railway-compatible settings
 port = int(os.environ.get("PORT", 10000))
-Flask==2.3.3
-gunicorn==21.2.0
-psycopg2-binary==2.9.9
+
