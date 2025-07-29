@@ -7,3 +7,5 @@ google-generativeai
 Werkzeug
 openai
 schedule
+psycopg2-binary
+gunicorn
