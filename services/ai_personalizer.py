@@ -4,7 +4,7 @@ from typing import Dict, Any, List
 import json
 
 import google.generativeai as genai
-from google.generativeai import types  ✅ CORRECT
+from google.generativeai import types
 from config import Config
 
 logger = logging.getLogger(__name__)
