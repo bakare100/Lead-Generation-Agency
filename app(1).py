@@ -1,3 +1,5 @@
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import os
 import logging
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
