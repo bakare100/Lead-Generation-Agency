@@ -3,7 +3,7 @@ import logging
 from typing import Dict, Any, List
 import json
 
-from google import genai
+import google.generativeai as genai
 from google.genai import types
 from config import Config
 
